@@ -39,14 +39,11 @@ st.markdown("""
     }
 
     .term-title {
-        display: inline-block;
-        background-color: #FF8C00;
-        color: #000000 !important;
+        color: #FF8C00 !important;
         font-family: 'IBM Plex Mono', monospace;
         font-weight: 700;
         font-size: 2.4rem;
         letter-spacing: 0.5px;
-        padding: 4px 14px;
         margin-bottom: 6px;
     }
 
