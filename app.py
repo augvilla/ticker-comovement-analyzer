@@ -138,9 +138,69 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("# CO-MOVEMENT ANALYZER")
-st.markdown('<div class="term-subtitle">CREATED BY AUGUSTINE VILLALOBOS</div>', unsafe_allow_html=True)
-st.caption("TICKER CO-MOVEMENT TERMINAL  |  TWO SYMBOLS  |  ANY RANGE  |  DIRECTION AGREEMENT PERCENTAGE")
+# ---------------------------------------------------------------------------
+# Access control
+# ---------------------------------------------------------------------------
+# Preferred: configure allowed users in Streamlit secrets (Settings > Secrets
+# on Streamlit Community Cloud, or a local .streamlit/secrets.toml) as:
+#
+# [[allowed_users]]
+# first_name = "Augustine"
+# last_name = "Villalobos"
+#
+# [[allowed_users]]
+# first_name = "David"
+# last_name = "Villalobos"
+#
+# Falls back to the same two names below if no secrets are configured, so
+# the app still works immediately without extra setup.
+
+DEFAULT_ALLOWED_USERS = {("augustine", "villalobos"), ("david", "villalobos")}
+
+def get_allowed_users() -> set:
+    try:
+        configured = st.secrets.get("allowed_users", None)
+    except Exception:
+        configured = None
+    if not configured:
+        return DEFAULT_ALLOWED_USERS
+    return {
+        (entry["first_name"].strip().lower(), entry["last_name"].strip().lower())
+        for entry in configured
+    }
+
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+
+def render_login():
+    st.markdown("<br>", unsafe_allow_html=True)
+    _, mid, _ = st.columns([1, 1.1, 1])
+    with mid:
+        with st.container(border=True):
+            st.markdown("### RESTRICTED ACCESS")
+            st.caption("ENTER YOUR FIRST AND LAST NAME TO CONTINUE")
+            with st.form("login_form"):
+                first = st.text_input("First name", placeholder="FIRST NAME")
+                last = st.text_input("Last name", placeholder="LAST NAME")
+                submitted = st.form_submit_button("ACCESS TERMINAL", use_container_width=True)
+
+            if submitted:
+                key = (first.strip().lower(), last.strip().lower())
+                if key in get_allowed_users() and first.strip() and last.strip():
+                    st.session_state.authenticated = True
+                    st.session_state.user_first_name = first.strip().title()
+                    st.rerun()
+                else:
+                    st.error("ACCESS DENIED — NAME NOT RECOGNIZED.")
+
+
+if not st.session_state.authenticated:
+    st.markdown("# CO-MOVEMENT ANALYZER")
+    st.markdown('<div class="term-subtitle">CREATED BY AUGUSTINE VILLALOBOS</div>', unsafe_allow_html=True)
+    render_login()
+    st.stop()
 
 # ---------- Helpers ----------
 
@@ -194,6 +254,19 @@ def compute_comovement(s1: pd.Series, s2: pd.Series):
 
     return agreement_pct, combined, len(moved)
 
+
+# ---------- Header row with logout ----------
+
+hcol1, hcol2 = st.columns([5, 1])
+with hcol1:
+    st.markdown("# CO-MOVEMENT ANALYZER")
+    st.markdown('<div class="term-subtitle">CREATED BY AUGUSTINE VILLALOBOS</div>', unsafe_allow_html=True)
+    st.caption("TICKER CO-MOVEMENT TERMINAL  |  TWO SYMBOLS  |  ANY RANGE  |  DIRECTION AGREEMENT PERCENTAGE")
+with hcol2:
+    st.write("")
+    if st.button("LOG OUT", use_container_width=True):
+        st.session_state.authenticated = False
+        st.rerun()
 
 # ---------- Top command bar (always visible, not collapsible) ----------
 
