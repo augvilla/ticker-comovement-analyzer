@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import date, timedelta
 
-st.set_page_config(page_title="CO-MVMT ANALYZER", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Co-Movement Analyzer", layout="wide", initial_sidebar_state="collapsed")
 
 # ---------------------------------------------------------------------------
 # Terminal styling — jet black, amber/orange monospace, no rounded corners.
@@ -29,6 +29,14 @@ st.markdown("""
     /* Headings */
     h1, h2, h3, h4, h5, h6 { color: #FF8C00 !important; letter-spacing: 0.5px; }
     p, span, label, .stMarkdown, .stCaption { color: #FFB84D !important; }
+
+    .term-subtitle {
+        color: #7A5A2E !important;
+        font-size: 0.78rem;
+        letter-spacing: 1px;
+        margin-top: -6px;
+        margin-bottom: 10px;
+    }
 
     /* Command bar container (native st.container(border=True)) */
     div[data-testid="stVerticalBlockBorderWrapper"] {
@@ -130,8 +138,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("# CO-MVMT ANALYZER")
-st.caption("TICKER CO-MOVEMENT TERMINAL  |  TWO SYMBOLS  |  ANY RANGE  |  DIRECTION AGREEMENT %")
+st.markdown("# CO-MOVEMENT ANALYZER")
+st.markdown('<div class="term-subtitle">CREATED BY AUGUSTINE VILLALOBOS</div>', unsafe_allow_html=True)
+st.caption("TICKER CO-MOVEMENT TERMINAL  |  TWO SYMBOLS  |  ANY RANGE  |  DIRECTION AGREEMENT PERCENTAGE")
 
 # ---------- Helpers ----------
 
