@@ -335,8 +335,10 @@ if run:
     moved_mask = (direction_df['dir1'] != 0) & (direction_df['dir2'] != 0)
     days_together = int((direction_df.loc[moved_mask, 'dir1'] == direction_df.loc[moved_mask, 'dir2']).sum())
 
+    corr_value = 2 * agreement_pct - 1
+
     col1, col2, col3 = st.columns(3)
-    col1.metric("CO-MOVEMENT", f"{agreement_pct:.2f}")
+    col1.metric("CORRELATION", f"{corr_value:.2f}")
     col2.metric("DAYS COMPARED", n_days)
     col3.metric("DAYS MOVED TOGETHER", days_together)
 
