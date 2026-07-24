@@ -38,6 +38,18 @@ st.markdown("""
         margin-bottom: 10px;
     }
 
+    .term-title {
+        display: inline-block;
+        background-color: #FF8C00;
+        color: #000000 !important;
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 700;
+        font-size: 2.4rem;
+        letter-spacing: 0.5px;
+        padding: 4px 14px;
+        margin-bottom: 6px;
+    }
+
     /* Command bar container (native st.container(border=True)) */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border: 1px solid #FF8C00 !important;
@@ -197,7 +209,7 @@ def render_login():
 
 
 if not st.session_state.authenticated:
-    st.markdown("# CO-MOVEMENT ANALYZER")
+    st.markdown('<div class="term-title">TICKER CO-MOVEMENT ANALYZER</div>', unsafe_allow_html=True)
     st.markdown('<div class="term-subtitle">CREATED BY AUGUSTINE VILLALOBOS</div>', unsafe_allow_html=True)
     render_login()
     st.stop()
@@ -255,18 +267,11 @@ def compute_comovement(s1: pd.Series, s2: pd.Series):
     return agreement_pct, combined, len(moved)
 
 
-# ---------- Header row with logout ----------
+# ---------- Header ----------
 
-hcol1, hcol2 = st.columns([5, 1])
-with hcol1:
-    st.markdown("# CO-MOVEMENT ANALYZER")
-    st.markdown('<div class="term-subtitle">CREATED BY AUGUSTINE VILLALOBOS</div>', unsafe_allow_html=True)
-    st.caption("TICKER CO-MOVEMENT TERMINAL  |  TWO SYMBOLS  |  ANY RANGE  |  DIRECTION AGREEMENT PERCENTAGE")
-with hcol2:
-    st.write("")
-    if st.button("LOG OUT", use_container_width=True):
-        st.session_state.authenticated = False
-        st.rerun()
+st.markdown('<div class="term-title">TICKER CO-MOVEMENT ANALYZER</div>', unsafe_allow_html=True)
+st.markdown('<div class="term-subtitle">CREATED BY AUGUSTINE VILLALOBOS</div>', unsafe_allow_html=True)
+st.caption("TICKER CO-MOVEMENT TERMINAL  |  TWO SYMBOLS  |  ANY RANGE  |  DIRECTION AGREEMENT PERCENTAGE")
 
 # ---------- Top command bar (always visible, not collapsible) ----------
 
