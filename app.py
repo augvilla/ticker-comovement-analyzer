@@ -4,13 +4,137 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import date, timedelta
 
-st.set_page_config(page_title="Ticker Co-Movement Analyzer", layout="wide")
+st.set_page_config(page_title="CO-MVMT ANALYZER", layout="wide", initial_sidebar_state="collapsed")
 
-st.title("📈 Ticker Co-Movement Analyzer")
-st.caption(
-    "Compare two tickers (stocks, ETFs, or crypto) over a date range and see "
-    "what percent of days they moved in the same direction (both up or both down)."
-)
+# ---------------------------------------------------------------------------
+# Terminal styling — jet black, amber/orange monospace, no rounded corners.
+# ---------------------------------------------------------------------------
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+    html, body, [class*="css"]  {
+        font-family: 'IBM Plex Mono', 'Consolas', monospace !important;
+    }
+
+    /* Base canvas */
+    .stApp {
+        background-color: #000000;
+        color: #FF8C00;
+    }
+    section[data-testid="stSidebar"] { display: none; }
+    header[data-testid="stHeader"] { background-color: #000000; }
+    div.block-container { padding-top: 1.5rem; max-width: 1400px; }
+
+    /* Headings */
+    h1, h2, h3, h4, h5, h6 { color: #FF8C00 !important; letter-spacing: 0.5px; }
+    p, span, label, .stMarkdown, .stCaption { color: #FFB84D !important; }
+
+    /* Command bar container */
+    .term-bar {
+        border: 1px solid #FF8C00;
+        padding: 14px 18px 4px 18px;
+        margin-bottom: 18px;
+        background-color: #050505;
+    }
+    .term-label {
+        color: #FF8C00 !important;
+        font-size: 0.72rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    /* Text inputs */
+    .stTextInput input {
+        background-color: #000000 !important;
+        color: #FF8C00 !important;
+        border: 1px solid #FF8C00 !important;
+        border-radius: 0px !important;
+        font-family: 'IBM Plex Mono', monospace !important;
+        font-weight: 600;
+        caret-color: #FF8C00;
+    }
+    .stTextInput input:focus {
+        box-shadow: 0 0 0 1px #FF8C00 !important;
+        border: 1px solid #FFB84D !important;
+    }
+
+    /* Date inputs */
+    .stDateInput input {
+        background-color: #000000 !important;
+        color: #FF8C00 !important;
+        border: 1px solid #FF8C00 !important;
+        border-radius: 0px !important;
+        font-family: 'IBM Plex Mono', monospace !important;
+        font-weight: 600;
+    }
+    div[data-baseweb="calendar"] { background-color: #000000 !important; }
+
+    /* Buttons */
+    .stButton button {
+        background-color: #000000;
+        color: #FF8C00;
+        border: 1px solid #FF8C00;
+        border-radius: 0px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 700;
+        letter-spacing: 1px;
+        width: 100%;
+        transition: none;
+    }
+    .stButton button:hover {
+        background-color: #FF8C00;
+        color: #000000;
+        border: 1px solid #FF8C00;
+    }
+
+    /* Metrics */
+    div[data-testid="stMetric"] {
+        background-color: #050505;
+        border: 1px solid #FF8C00;
+        padding: 10px 14px;
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #FF8C00 !important;
+        font-size: 0.72rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+    div[data-testid="stMetricValue"] {
+        color: #FFFFFF !important;
+        font-family: 'IBM Plex Mono', monospace !important;
+        font-weight: 700;
+    }
+
+    /* Expander */
+    .streamlit-expanderHeader {
+        background-color: #050505 !important;
+        color: #FF8C00 !important;
+        border: 1px solid #FF8C00 !important;
+        border-radius: 0px !important;
+    }
+    div[data-testid="stExpander"] { border: none; }
+
+    /* Dataframe */
+    div[data-testid="stDataFrame"] { border: 1px solid #FF8C00; }
+
+    /* Divider rule */
+    .term-rule { border-top: 1px solid #FF8C00; margin: 4px 0 18px 0; opacity: 0.5; }
+
+    /* Alerts */
+    div[data-testid="stAlert"] {
+        background-color: #050505;
+        color: #FF8C00;
+        border: 1px solid #FF8C00;
+        border-radius: 0px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("# 📟 CO-MVMT ANALYZER")
+st.caption("TICKER CO-MOVEMENT TERMINAL — TWO SYMBOLS · ANY RANGE · DIRECTION AGREEMENT %")
+st.markdown('<div class="term-rule"></div>', unsafe_allow_html=True)
 
 # ---------- Helpers ----------
 
@@ -65,67 +189,73 @@ def compute_comovement(s1: pd.Series, s2: pd.Series):
     return agreement_pct, combined, len(moved)
 
 
-# ---------- Sidebar inputs ----------
+# ---------- Top command bar (always visible, not collapsible) ----------
 
-with st.sidebar:
-    st.header("Inputs")
-    ticker1_raw = st.text_input("Ticker 1", value="AAPL")
-    ticker2_raw = st.text_input("Ticker 2", value="MSFT")
+default_start = date(date.today().year, 1, 1)  # YTD
+default_end = date.today()
 
-    default_end = date.today()
-    default_start = default_end - timedelta(days=180)
+st.markdown('<div class="term-bar">', unsafe_allow_html=True)
+c1, c2, c3, c4, c5 = st.columns([1.1, 1.1, 1, 1, 0.8])
 
+with c1:
+    st.markdown('<div class="term-label">TICKER 1</div>', unsafe_allow_html=True)
+    ticker1_raw = st.text_input("Ticker 1", value="SPY", label_visibility="collapsed")
+with c2:
+    st.markdown('<div class="term-label">TICKER 2</div>', unsafe_allow_html=True)
+    ticker2_raw = st.text_input("Ticker 2", value="TLT", label_visibility="collapsed")
+with c3:
+    st.markdown('<div class="term-label">START DATE</div>', unsafe_allow_html=True)
     start_date = st.date_input("Start date", value=default_start,
-                                max_value=default_end)
+                                max_value=default_end, label_visibility="collapsed")
+with c4:
+    st.markdown('<div class="term-label">END DATE</div>', unsafe_allow_html=True)
     end_date = st.date_input("End date", value=default_end,
-                              max_value=default_end)
+                              max_value=default_end, label_visibility="collapsed")
+with c5:
+    st.markdown('<div class="term-label">&nbsp;</div>', unsafe_allow_html=True)
+    run = st.button("ANALYZE", type="primary", use_container_width=True)
 
-    st.caption("Tip: for crypto, use tickers like `BTC-USD`, `ETH-USD` "
-               "(or just `BTC`, `ETH` — we'll convert common ones for you).")
-
-    run = st.button("Analyze", type="primary", use_container_width=True)
+st.caption("CRYPTO: USE -USD SUFFIX (E.G. BTC-USD) — SHORTHAND BTC / ETH / SOL ETC. AUTO-CONVERTED")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------- Main logic ----------
 
 if run:
     if start_date >= end_date:
-        st.error("Start date must be before end date.")
+        st.error("START DATE MUST BE BEFORE END DATE.")
         st.stop()
 
     t1 = normalize_ticker(ticker1_raw)
     t2 = normalize_ticker(ticker2_raw)
 
     if not t1 or not t2:
-        st.error("Please enter both tickers.")
+        st.error("PLEASE ENTER BOTH TICKERS.")
         st.stop()
 
-    with st.spinner(f"Fetching data for {t1} and {t2}..."):
+    with st.spinner(f"FETCHING {t1} / {t2}..."):
         s1 = fetch_prices(t1, start_date, end_date)
         s2 = fetch_prices(t2, start_date, end_date)
 
     if s1.empty:
-        st.error(f"Couldn't find data for '{t1}'. Check the ticker symbol.")
+        st.error(f"NO DATA FOR '{t1}'. CHECK TICKER SYMBOL.")
         st.stop()
     if s2.empty:
-        st.error(f"Couldn't find data for '{t2}'. Check the ticker symbol.")
+        st.error(f"NO DATA FOR '{t2}'. CHECK TICKER SYMBOL.")
         st.stop()
 
     agreement_pct, direction_df, n_days = compute_comovement(s1, s2)
 
     if agreement_pct is None:
-        st.error("Not enough overlapping trading days to compare these two tickers "
-                  "in the selected range.")
+        st.error("NOT ENOUGH OVERLAPPING TRADING DAYS TO COMPARE THESE TICKERS IN THE SELECTED RANGE.")
         st.stop()
 
-    # --- Metric ---
+    moved_mask = (direction_df['dir1'] != 0) & (direction_df['dir2'] != 0)
+    days_together = int((direction_df.loc[moved_mask, 'dir1'] == direction_df.loc[moved_mask, 'dir2']).sum())
+
     col1, col2, col3 = st.columns(3)
-    col1.metric("Co-movement", f"{agreement_pct:.2f}")
-    col2.metric("Days compared", n_days)
-    col3.metric("Days moved together", int((direction_df.loc[
-        (direction_df['dir1'] != 0) & (direction_df['dir2'] != 0), 'dir1'
-    ] == direction_df.loc[
-        (direction_df['dir1'] != 0) & (direction_df['dir2'] != 0), 'dir2'
-    ]).sum()))
+    col1.metric("CO-MOVEMENT", f"{agreement_pct:.2f}")
+    col2.metric("DAYS COMPARED", n_days)
+    col3.metric("DAYS MOVED TOGETHER", days_together)
 
     st.markdown(
         f"**{t1}** and **{t2}** moved in the same direction "
@@ -133,32 +263,42 @@ if run:
         f"**{start_date}** and **{end_date}**."
     )
 
-    # --- Chart: dual y-axis price chart ---
+    # --- Chart: dual y-axis price chart, terminal styling ---
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=s1.index, y=s1.values, name=t1, yaxis="y1", mode="lines"
+        x=s1.index, y=s1.values, name=t1, yaxis="y1", mode="lines",
+        line=dict(color="#FF8C00", width=1.6)
     ))
     fig.add_trace(go.Scatter(
-        x=s2.index, y=s2.values, name=t2, yaxis="y2", mode="lines"
+        x=s2.index, y=s2.values, name=t2, yaxis="y2", mode="lines",
+        line=dict(color="#FFFFFF", width=1.6)
     ))
 
     fig.update_layout(
-        title=f"{t1} vs {t2} — Price Chart ({start_date} to {end_date})",
-        xaxis=dict(title="Date"),
-        yaxis=dict(title=f"{t1} Price", side="left"),
-        yaxis2=dict(title=f"{t2} Price", side="right", overlaying="y"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        title=dict(text=f"{t1} VS {t2} — {start_date} TO {end_date}",
+                    font=dict(color="#FF8C00", family="IBM Plex Mono")),
+        xaxis=dict(title="DATE", color="#FF8C00", gridcolor="#331d00",
+                   showline=True, linecolor="#FF8C00"),
+        yaxis=dict(title=f"{t1} PRICE", color="#FF8C00", gridcolor="#331d00",
+                   showline=True, linecolor="#FF8C00"),
+        yaxis2=dict(title=f"{t2} PRICE", color="#FFFFFF", overlaying="y", side="right",
+                    showline=True, linecolor="#FFFFFF"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                    font=dict(color="#FF8C00", family="IBM Plex Mono")),
         hovermode="x unified",
         height=550,
+        paper_bgcolor="#000000",
+        plot_bgcolor="#000000",
+        font=dict(family="IBM Plex Mono", color="#FF8C00"),
     )
 
     st.plotly_chart(fig, use_container_width=True)
 
-    with st.expander("See daily direction data"):
+    with st.expander("SEE DAILY DIRECTION DATA"):
         display_df = direction_df.copy()
-        display_df.columns = [f"{t1} direction", f"{t2} direction"]
-        display_df = display_df.replace({1: "Up", -1: "Down", 0: "Flat"})
+        display_df.columns = [f"{t1} DIRECTION", f"{t2} DIRECTION"]
+        display_df = display_df.replace({1: "UP", -1: "DOWN", 0: "FLAT"})
         st.dataframe(display_df, use_container_width=True)
 
 else:
-    st.info("Enter two tickers and a date range in the sidebar, then click **Analyze**.")
+    st.info("ENTER TWO TICKERS AND A DATE RANGE ABOVE, THEN PRESS ANALYZE.")
