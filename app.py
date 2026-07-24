@@ -24,22 +24,23 @@ st.markdown("""
     }
     section[data-testid="stSidebar"] { display: none; }
     header[data-testid="stHeader"] { background-color: #000000; }
-    div.block-container { padding-top: 1.5rem; max-width: 1400px; }
+    div.block-container { padding-top: 1.2rem; max-width: 1400px; }
 
     /* Headings */
     h1, h2, h3, h4, h5, h6 { color: #FF8C00 !important; letter-spacing: 0.5px; }
     p, span, label, .stMarkdown, .stCaption { color: #FFB84D !important; }
 
-    /* Command bar container */
-    .term-bar {
-        border: 1px solid #FF8C00;
-        padding: 14px 18px 4px 18px;
-        margin-bottom: 18px;
-        background-color: #050505;
+    /* Command bar container (native st.container(border=True)) */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        border: 1px solid #FF8C00 !important;
+        border-radius: 0px !important;
+        background-color: #050505 !important;
     }
+    div[data-testid="stVerticalBlockBorderWrapper"] > div { border-radius: 0px !important; }
+
     .term-label {
         color: #FF8C00 !important;
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         letter-spacing: 1.5px;
         text-transform: uppercase;
         margin-bottom: 2px;
@@ -97,7 +98,7 @@ st.markdown("""
     }
     div[data-testid="stMetricLabel"] {
         color: #FF8C00 !important;
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         letter-spacing: 1.5px;
         text-transform: uppercase;
     }
@@ -119,9 +120,6 @@ st.markdown("""
     /* Dataframe */
     div[data-testid="stDataFrame"] { border: 1px solid #FF8C00; }
 
-    /* Divider rule */
-    .term-rule { border-top: 1px solid #FF8C00; margin: 4px 0 18px 0; opacity: 0.5; }
-
     /* Alerts */
     div[data-testid="stAlert"] {
         background-color: #050505;
@@ -132,9 +130,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("# 📟 CO-MVMT ANALYZER")
-st.caption("TICKER CO-MOVEMENT TERMINAL — TWO SYMBOLS · ANY RANGE · DIRECTION AGREEMENT %")
-st.markdown('<div class="term-rule"></div>', unsafe_allow_html=True)
+st.markdown("# CO-MVMT ANALYZER")
+st.caption("TICKER CO-MOVEMENT TERMINAL  |  TWO SYMBOLS  |  ANY RANGE  |  DIRECTION AGREEMENT %")
 
 # ---------- Helpers ----------
 
@@ -194,29 +191,30 @@ def compute_comovement(s1: pd.Series, s2: pd.Series):
 default_start = date(date.today().year, 1, 1)  # YTD
 default_end = date.today()
 
-st.markdown('<div class="term-bar">', unsafe_allow_html=True)
-c1, c2, c3, c4, c5 = st.columns([1.1, 1.1, 1, 1, 0.8])
+with st.container(border=True):
+    c1, c2, c3, c4, c5 = st.columns([1.1, 1.1, 1, 1, 0.8])
 
-with c1:
-    st.markdown('<div class="term-label">TICKER 1</div>', unsafe_allow_html=True)
-    ticker1_raw = st.text_input("Ticker 1", value="SPY", label_visibility="collapsed")
-with c2:
-    st.markdown('<div class="term-label">TICKER 2</div>', unsafe_allow_html=True)
-    ticker2_raw = st.text_input("Ticker 2", value="TLT", label_visibility="collapsed")
-with c3:
-    st.markdown('<div class="term-label">START DATE</div>', unsafe_allow_html=True)
-    start_date = st.date_input("Start date", value=default_start,
-                                max_value=default_end, label_visibility="collapsed")
-with c4:
-    st.markdown('<div class="term-label">END DATE</div>', unsafe_allow_html=True)
-    end_date = st.date_input("End date", value=default_end,
-                              max_value=default_end, label_visibility="collapsed")
-with c5:
-    st.markdown('<div class="term-label">&nbsp;</div>', unsafe_allow_html=True)
-    run = st.button("ANALYZE", type="primary", use_container_width=True)
+    with c1:
+        st.markdown('<div class="term-label">TICKER 1</div>', unsafe_allow_html=True)
+        ticker1_raw = st.text_input("Ticker 1", value="SPY", label_visibility="collapsed")
+    with c2:
+        st.markdown('<div class="term-label">TICKER 2</div>', unsafe_allow_html=True)
+        ticker2_raw = st.text_input("Ticker 2", value="TLT", label_visibility="collapsed")
+    with c3:
+        st.markdown('<div class="term-label">START DATE</div>', unsafe_allow_html=True)
+        start_date = st.date_input("Start date", value=default_start,
+                                    max_value=default_end, label_visibility="collapsed")
+    with c4:
+        st.markdown('<div class="term-label">END DATE</div>', unsafe_allow_html=True)
+        end_date = st.date_input("End date", value=default_end,
+                                  max_value=default_end, label_visibility="collapsed")
+    with c5:
+        st.markdown('<div class="term-label">&nbsp;</div>', unsafe_allow_html=True)
+        run = st.button("ANALYZE", type="primary", use_container_width=True)
 
-st.caption("CRYPTO: USE -USD SUFFIX (E.G. BTC-USD) — SHORTHAND BTC / ETH / SOL ETC. AUTO-CONVERTED")
-st.markdown('</div>', unsafe_allow_html=True)
+    st.caption("CRYPTO: USE -USD SUFFIX (E.G. BTC-USD)  |  SHORTHAND BTC / ETH / SOL ETC. AUTO-CONVERTED")
+
+st.write("")
 
 # ---------- Main logic ----------
 
@@ -264,25 +262,28 @@ if run:
     )
 
     # --- Chart: dual y-axis price chart, terminal styling ---
+    RED = "#FF1E1E"
+    BLUE = "#1E90FF"
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=s1.index, y=s1.values, name=t1, yaxis="y1", mode="lines",
-        line=dict(color="#FF8C00", width=1.6)
+        line=dict(color=RED, width=2.4)
     ))
     fig.add_trace(go.Scatter(
         x=s2.index, y=s2.values, name=t2, yaxis="y2", mode="lines",
-        line=dict(color="#FFFFFF", width=1.6)
+        line=dict(color=BLUE, width=2.4)
     ))
 
     fig.update_layout(
-        title=dict(text=f"{t1} VS {t2} — {start_date} TO {end_date}",
+        title=dict(text=f"{t1} VS {t2}  |  {start_date} TO {end_date}",
                     font=dict(color="#FF8C00", family="IBM Plex Mono")),
-        xaxis=dict(title="DATE", color="#FF8C00", gridcolor="#331d00",
-                   showline=True, linecolor="#FF8C00"),
-        yaxis=dict(title=f"{t1} PRICE", color="#FF8C00", gridcolor="#331d00",
-                   showline=True, linecolor="#FF8C00"),
-        yaxis2=dict(title=f"{t2} PRICE", color="#FFFFFF", overlaying="y", side="right",
-                    showline=True, linecolor="#FFFFFF"),
+        xaxis=dict(title="DATE", color="#FF8C00", gridcolor="#2a2a2a",
+                   griddash="dot", showline=True, linecolor="#FF8C00"),
+        yaxis=dict(title=f"{t1} PRICE", color=RED, gridcolor="#2a2a2a",
+                   griddash="dot", showline=True, linecolor=RED),
+        yaxis2=dict(title=f"{t2} PRICE", color=BLUE, overlaying="y", side="right",
+                    showline=True, linecolor=BLUE),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                     font=dict(color="#FF8C00", family="IBM Plex Mono")),
         hovermode="x unified",
